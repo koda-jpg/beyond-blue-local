@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Beyond Blue. 80周年から、次のT&K TOKAへ。">
+  <title>Beyond Blue. — T&K TOKA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    html { background: #fff; }
+    body { margin: 0; background: #fff; font-family: "Noto Sans JP", sans-serif; }
+    .scene { height: 330vh; height: 330svh; }
+    .stage { position: sticky; top: 0; min-height: 100vh; min-height: 100svh; display: grid; place-items: center; padding: 72px 24px; overflow: hidden; }
+    .copy { width: min(100%, 760px); text-align: center; color: transparent; -webkit-text-fill-color: transparent; background-color: white; background-repeat: repeat, no-repeat; background-size: 160px 160px, 100% 100%; background-clip: text; -webkit-background-clip: text; }
+    .copy h1 { margin: 0; font-size: 22px; line-height: 1.9; font-weight: 500; letter-spacing: .035em; }
+    .copy p { margin: 35px 0 0; font-size: 16px; line-height: 2.15; font-weight: 400; letter-spacing: .035em; }
+    .line { display: block; }
+    .cue { position: fixed; bottom: 27px; left: 50%; transform: translateX(-50%); color: #a4aab0; font-size: 10px; letter-spacing: .2em; text-align: center; transition: opacity .3s; pointer-events: none; }
+    .cue::after { content: ''; display: block; width: 1px; height: 26px; margin: 12px auto 0; background: #cbd0d4; }
+    .replay { position: fixed; bottom: 26px; right: 26px; border: 0; border-bottom: 1px solid #c5d7e5; padding: 8px 0; color: #0063b1; background: #fff; font: inherit; font-size: 11px; cursor: pointer; opacity: 0; visibility: hidden; transition: opacity .3s; }
+    .replay.visible { opacity: 1; visibility: visible; }
+    .replay:focus-visible { outline: 2px solid #0063b1; outline-offset: 6px; }
+    @media (max-width: 560px) {
+      .stage { padding: 56px 20px; }
+      .copy h1 { letter-spacing: 0; }
+      .copy p { letter-spacing: 0; line-height: 2; }
+      .line { text-wrap: pretty; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .scene { height: auto; }
+      .copy { background-image: none !important; background-color: #0063b1; }
+      .cue, .replay { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="scene">
+    <section class="stage" aria-label="Beyond Blue メッセージ">
+      <div class="copy">
+        <h1><span class="line">Beyond Blue.</span><span class="line">80周年から、次のT&amp;K TOKAへ。</span></h1>
+        <p><span class="line">T&amp;K TOKAが80年間培ってきた、</span><span class="line">色、インキ、印刷、ものづくりの知見。</span><span class="line">その積み重ねを大切にしながら、</span><span class="line">新しい技術や表現を取り入れ、</span><span class="line">これまでとは違う可能性を探っていく。</span></p>
+        <p><span class="line">すべては、これまでのT&amp;K TOKAのイメージを超え、</span><span class="line">その先にある新しい姿を探すための試みです。</span></p>
+      </div>
+    </section>
+  </main>
+  <div class="cue" aria-hidden="true">SCROLL</div>
+  <button class="replay" type="button">もう一度見る ↑</button>
+  <script>
+    const scene = document.querySelector('.scene');
+    const copy = document.querySelector('.copy');
+    const cue = document.querySelector('.cue');
+    const replay = document.querySelector('.replay');
+    const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+    let scheduled = false;
+    function render() {
+      scheduled = false;
+      if (reducedMotion.matches) return;
+      const distance = scene.offsetHeight - innerHeight;
+      const progress = Math.max(0, Math.min(1, -scene.getBoundingClientRect().top / Math.max(1, distance)));
+      // A single, very soft blue circle slides down and expands, clipped to live text.
+      // The wide transparent falloff hides the circle's edge without blurring the glyphs.
+      const p = Math.min(1, progress / .9);
+      const w = copy.offsetWidth;
+      const h = copy.offsetHeight;
+      const size = Math.max(w, h);
+      const radius = size * (.72 + 2.9 * p * p);
+      const centerY = -size * .76 + p * (size * .76 + h * .5);
+      // White grain is invisible on the white field and gently textures the blue.
+      // Both layers share the text clip, so no grain appears outside the glyphs.
+      copy.style.backgroundImage = `url("./grain.svg"), radial-gradient(circle ${radius}px at 50% ${centerY}px, #0063b1 0%, #0063b1 28%, rgba(0,99,177,.88) 40%, rgba(0,99,177,.5) 53%, rgba(0,99,177,.16) 65%, rgba(0,99,177,.025) 76%, rgba(0,99,177,0) 85%)`;
+      cue.style.opacity = String(1 - Math.min(1, progress * 9));
+      replay.classList.toggle('visible', progress > .96);
+    }
+    function schedule() { if (!scheduled) { scheduled = true; requestAnimationFrame(render); } }
+    addEventListener('scroll', schedule, { passive: true });
+    addEventListener('resize', schedule);
+    reducedMotion.addEventListener('change', schedule);
+    document.fonts.ready.then(schedule);
+    replay.addEventListener('click', () => scrollTo({ top: 0, behavior: reducedMotion.matches ? 'instant' : 'smooth' }));
+    render();
+  </script>
+</body>
+</html>
